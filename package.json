@@ -65,7 +65,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/blancofoodcoach/foodcoach-backend-common"
+    "url": "https://github.com/blancofoodcoach/typeorm"
   },
   "bugs": {
     "url": "https://github.com/typeorm/typeorm/issues"
