@@ -45,11 +45,11 @@ jobs:
         run: npm list
       - name: Install dependencies
         run: npm install
-      - name: Package
-        run: npm run package
+      - name: Make package
+        run: gulp package
       - name: Publish package
         run: |
           npm version ${{ needs.version.outputs.release-tag }}-beta${{ github.run_number }} --no-git-tag-version
-          gulp publish --tag beta
+          cd ./build/package && npm publish --tag beta
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
