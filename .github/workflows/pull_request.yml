@@ -1,0 +1,52 @@
+name: pr
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  NODE_AUTH_TOKEN: ${{ secrets.GH_READ_TOKEN }}
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install:
+    name: install
+    runs-on: ubuntu-22.04
+    permissions: write-all
+    outputs:
+      docker: ${{ steps.changes.outputs.docker }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v3
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          registry-url: https://npm.pkg.github.com/
+          scope: '@blancofoodcoach'
+          always-auth: true
+      - name: Install dependencies
+        run: yarn install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_READ_TOKEN }}
+      - run: yarn lint:report
+      - run: yarn format
+      - run: yarn test:cov

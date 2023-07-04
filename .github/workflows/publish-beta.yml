@@ -1,0 +1,52 @@
+name: publish beta
+on: workflow_dispatch
+
+env:
+  NODE_AUTH_TOKEN: ${{ secrets.GH_READ_TOKEN }}
+
+permissions:
+  packages: write
+  id-token: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  version:
+    name: version
+    uses: ./.github/workflows/shared-version.yml
+  publish:
+    name: publish
+    needs:
+      - version
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          registry-url: https://npm.pkg.github.com/
+          scope: '@blancofoodcoach'
+          always-auth: true
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: |
+          echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Install dependencies
+        run: yarn install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_READ_TOKEN }}
+      - name: Build package
+        run: yarn build
+      - name: Publish package
+        run: |
+          npm version ${{ needs.version.outputs.release-tag }}-beta${{ github.run_number }} --no-git-tag-version
+          npm publish --tag beta
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,36 @@
+name: shared-version
+on:
+  workflow_call:
+    outputs:
+      release-tag:
+        description: "Next release tag"
+        value: ${{ jobs.version.outputs.release-tag }}
+      working-tag:
+        description: "Next working tag"
+        value: ${{ jobs.version.outputs.working-tag }}
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    name: checkout
+    outputs:
+      release-tag: ${{ steps.values.outputs.release-tag }}
+      working-tag: ${{ steps.values.outputs.working-tag }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: paulhatch/semantic-version@v5.0.0-beta
+        id: version
+        with:
+          major_pattern: "/^(break)/"
+          minor_pattern: "/^(feat)/"
+          format: "${major}.${minor}.${patch}-{increment}"
+          bump_each_commit: false
+      - id: values
+        run: |
+          echo "release-tag=${{ steps.version.outputs.version_tag }}" >> $GITHUB_OUTPUT
+          echo "working-tag=${{ steps.version.outputs.major }}.${{ steps.version.outputs.minor }}.${{ steps.version.outputs.patch }}-${{ steps.version.outputs.increment}}" >> $GITHUB_OUTPUT

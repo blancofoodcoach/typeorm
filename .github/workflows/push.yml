@@ -1,0 +1,50 @@
+name: push
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/**'
+
+jobs:
+  version:
+    name: version
+    uses: ./.github/workflows/shared-version.yml
+  build:
+    name: push
+    needs: version
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          registry-url: https://npm.pkg.github.com/
+          scope: '@blancofoodcoach'
+          always-auth: true
+      - name: Install dependencies
+        run: yarn install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_READ_TOKEN }}
+      - name: Build package
+        run: yarn build
+      - name: Version package
+        run: |
+          npm version ${{ needs.version.outputs.release-tag }} --no-git-tag-version
+      - name: Push package.json
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -a -m "chore: update package.json"
+          git push
+      - name: Publish package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release
+        run: |
+          gh release create ${{ needs.version.outputs.release-tag }} --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
