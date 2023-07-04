@@ -45,13 +45,11 @@ jobs:
         run: npm list
       - name: Install dependencies
         run: npm install
-      - name: Compile
-        run: npm run compile
       - name: Package
         run: npm run package
       - name: Publish package
         run: |
           npm version ${{ needs.version.outputs.release-tag }}-beta${{ github.run_number }} --no-git-tag-version
-          npm publish --tag beta
+          npm run publish --tag beta
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

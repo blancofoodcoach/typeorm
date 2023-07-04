@@ -39,8 +39,6 @@ jobs:
         run: npm list
       - name: Install dependencies
         run: npm install
-      - name: Compile
-        run: npm run compile
       - name: Package
         run: npm run package
       - name: Version package
@@ -53,7 +51,7 @@ jobs:
           git commit -a -m "chore: update package.json"
           git push
       - name: Publish package
-        run: npm publish
+        run: npm run publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create release
