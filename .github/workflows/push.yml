@@ -51,7 +51,7 @@ jobs:
           git commit -a -m "chore: update package.json"
           git push
       - name: Publish package
-        run: npm run publish
+        run: gulp publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create release
