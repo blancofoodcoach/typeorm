@@ -3,7 +3,7 @@ name: pr
 on:
   pull_request:
     branches:
-      - main
+      - master
 
 env:
   NODE_AUTH_TOKEN: ${{ secrets.GH_READ_TOKEN }}
